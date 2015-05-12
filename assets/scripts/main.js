@@ -1,6 +1,6 @@
 'use strict';
 
-var $ = window.jQuery;
+var $ = require('jquery');
 var transit = require('jquery.transit');
 var Mousetrap = require('mousetrap');
 
@@ -130,6 +130,10 @@ $(function () {
 
     var $body = $('body');
 
+    var lightboxContentTpl = '<div id="lightbox-over"></div><div id="lightbox-inner"><div id="lightbox-content"></div></div><div id="lightbox-loader">Loading...</div>';
+
+    $body.append(lightboxContentTpl);
+
     $.extend(lightbox, {
         $over:    $('#lightbox-over'),
         $inner:   $('#lightbox-inner'),
@@ -139,13 +143,10 @@ $(function () {
     });
 
     $('[data-lightbox-path]').each(function () {
-        lightbox.localContent[$(this).data('lightbox-path')] = $(this).html();
-        $(this).remove();
+        var $this = $(this);
+        lightbox.localContent[$this.data('lightbox-path')] = $this.html();
+        $this.remove();
     });
-
-    var lightboxContentTpl = '<div id="lightbox-over"></div><div id="lightbox-inner"><div id="lightbox-content"></div></div><div id="lightbox-loader">Loading...</div>';
-
-    $body.append(lightboxContentTpl);
 
     //$(window).scroll(function() {
     //    fixScroll();
