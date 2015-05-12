@@ -1,7 +1,7 @@
 {
   "name":            "lightbox",
-  "version":         "0.0.0",
-  "description":     "Lightboxes, easy as pie",
+  "version":         "0.0.1",
+  "description":     "Easy as <a href=\"/foo\" target=\"lightbox\">pie</a>",
   "keywords":        [
     "lightbox"
   ],
