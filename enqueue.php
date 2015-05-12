@@ -8,10 +8,8 @@
  */
 
 $enqueue_lightbox_assets = function () {
-    wp_register_script('transit', plugins_url('js/jquery.transit.min.js', __FILE__));
-    wp_register_script('mousetrap', plugins_url('js/mousetrap.min.js', __FILE__));
-    wp_enqueue_script('jannielightbox', plugins_url('js/lightbox.js', __FILE__), ['transit', 'mousetrap'], '2.0');
-    wp_enqueue_style('jannielightbox', plugins_url('css/lightbox.css', __FILE__));
+    wp_enqueue_script('jannielightbox', plugins_url('dist/bundle-main.js', __FILE__), ['jquery'], '0.0.0');
+    wp_enqueue_style('jannielightbox', plugins_url('dist/bundle-main.css', __FILE__));
 };
 
 add_action('wp_enqueue_scripts', $enqueue_lightbox_assets);
