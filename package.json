@@ -1,0 +1,16 @@
+{
+  "name":            "lightbox",
+  "version":         "0.0.0",
+  "description":     "Lightboxes, easy as pie",
+  "keywords":        [
+    "lightbox"
+  ],
+  "repository":      "https://github.com/jmversteeg/jannielightbox",
+  "author":          "jmversteeg",
+  "license":         "MIT",
+  "devDependencies": {
+    "jquery":         "^2.1.4",
+    "jquery.transit": "^0.9.12",
+    "mousetrap":      "^1.5.2"
+  }
+}
