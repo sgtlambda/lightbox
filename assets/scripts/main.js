@@ -118,15 +118,12 @@ var lightbox = {
             var content_url = this.base_url + target;
             var lb = this;
             $.ajax({
-                url:        content_url,
-                /**
-                 * @param {XMLHttpRequest} request
-                 */
-                beforeSend: function (request) {
-                    request.setRequestHeader('is-lightbox-content', 'true');
+                url:      content_url,
+                headers:  {
+                    'is-lightbox-content': 'true'
                 },
-                dataType:   'html',
-                success:    function (data) {
+                dataType: 'html',
+                success:  function (data) {
                     lb.show_content(data);
                 }
             });
