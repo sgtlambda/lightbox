@@ -1,6 +1,6 @@
 'use strict';
 
-var $ = typeof jQuery == 'undefined' ? require('jquery') : jQuery;
+var $ = require('jquery');
 var transit = require('jquery.transit');
 var Mousetrap = require('mousetrap');
 
