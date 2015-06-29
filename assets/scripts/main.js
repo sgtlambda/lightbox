@@ -1,6 +1,6 @@
 'use strict';
 
-var $ = require('jquery');
+var $ = typeof jQuery == 'undefined' ? require('jquery') : jQuery;
 var transit = require('jquery.transit');
 var Mousetrap = require('mousetrap');
 
@@ -15,7 +15,7 @@ var lightbox = {
 
     /***
      * Performs the transformations as specified in the html content
-     * @param html
+     * @param {string} html
      */
     do_inline_transforms: function (html) {
         var match;
@@ -33,6 +33,9 @@ var lightbox = {
         }
     },
 
+    /**
+     * Desktop-specific function to be executed when new content is to be shown
+     */
     show_content_desktop: function () {
         var $window = $(window);
         this.$inner.stop().css({
@@ -49,12 +52,19 @@ var lightbox = {
         }, this.fd);
     },
 
+    /**
+     * Mobile-specific function to be executed when new content is to be shown
+     */
     show_content_mobile: function () {
         this.lastScrollpos = $(window).scrollTop();
         this.$page.hide();
         this.$inner.show();
     },
 
+    /**
+     * Show given HTML content in the lightbox
+     * @param {string} html
+     */
     show_content: function (html) {
         this.$content.html(html);
         this.do_inline_transforms(html);
@@ -76,6 +86,9 @@ var lightbox = {
         });
     },
 
+    /**
+     * Fix page scroll position. Experimental.
+     */
     fixScroll: function () {
         if (this.isVisible && this.isDesktop) {
             var st = $(window).scrollTop();
@@ -90,6 +103,10 @@ var lightbox = {
         }
     },
 
+    /**
+     * Load the lightbox content based on the href or lightbox content identifier
+     * @param {string} target
+     */
     load_content: function (target) {
         this.$over.stop().fadeIn(this.fd);
         var matches = /@(.*)/.exec(target);
@@ -130,6 +147,9 @@ var lightbox = {
         }
     },
 
+    /**
+     * Hide the lightbox, without removing the "overlay". Use this in case the page is about to navigate away
+     */
     closePending: function () {
         this.$inner.fadeOut();
     }
