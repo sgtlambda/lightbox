@@ -196,7 +196,7 @@ $(function () {
                 method: $form.attr('method'),
                 data:   $form.serialize()
             });
-
+            $form.find('[type="submit"]').attr('disabled', 'disabled');
             e.preventDefault();
         }
     }, 'form[target="lightbox"]');
