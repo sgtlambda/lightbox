@@ -106,28 +106,22 @@ var lightbox = {
     /**
      * Load the lightbox content based on the href or lightbox content identifier
      * @param {string} target
+     * @param {Object} [ajaxOptions] Optional object containing additional objects to be passed to $.ajax
      */
-    load_content: function (target) {
+    load_content: function (target, ajaxOptions) {
         this.$over.stop().fadeIn(this.fd);
         var matches = /@(.*)/.exec(target);
-        if (matches !== null) {
-            var localTarget = matches[1];
-            if (this.localContent.hasOwnProperty(localTarget))
-                this.show_content(this.localContent[localTarget]);
-        } else {
-            var content_url = this.base_url + target;
-            var lb = this;
-            $.ajax({
-                url:      content_url,
+        if (matches !== null && this.localContent.hasOwnProperty(matches[1]))
+            this.show_content(this.localContent[matches[1]]);
+        else
+            $.ajax($.extend(true, {}, {
+                url:      this.base_url + target,
                 headers:  {
                     'is-lightbox-content': 'true'
                 },
                 dataType: 'html',
-                success:  function (data) {
-                    lb.show_content(data);
-                }
-            });
-        }
+                success:  this.show_content.bind(this)
+            }, ajaxOptions));
     },
 
     /**
@@ -185,13 +179,27 @@ $(function () {
 
     $(document).on({
         click: function (e) {
-            var $this = $(this);
-            var target = $this.attr('href');
+            var $link = $(this);
+            var target = $link.attr('href');
             lightbox.load_content(target);
 
             e.preventDefault();
         }
     }, 'a[target="lightbox"]');
+
+    $(document).on({
+        submit: function (e) {
+            var $form = $(this);
+            var action = $form.attr('action');
+            lightbox.load_content(action, {
+                url:    action,
+                method: $form.attr('method'),
+                data:   $form.serialize()
+            });
+
+            e.preventDefault();
+        }
+    }, 'form[target="lightbox"]');
 
     $(document).on({
         click: function (e) {
