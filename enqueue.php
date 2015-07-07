@@ -12,6 +12,7 @@ define('IS_LIGHTBOX_CONTENT', $_SERVER['HTTP_IS_LIGHTBOX_CONTENT'] === "true");
 $enqueue_lightbox_assets = function () {
     wp_enqueue_script('jannielightbox', plugins_url('dist/bundle-main.js', __FILE__), ['jquery'], '0.0.0');
     wp_enqueue_style('jannielightbox', plugins_url('dist/bundle-main.css', __FILE__));
+    wp_enqueue_style('jannielightbox-assets', plugins_url('dist/bundle-assets.css', __FILE__));
 };
 
 add_action('wp_enqueue_scripts', $enqueue_lightbox_assets);
