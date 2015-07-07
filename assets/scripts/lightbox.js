@@ -4,32 +4,47 @@ var $         = require('jquery'),
     Mousetrap = require('mousetrap'),
     transit   = require('jquery.transit');
 
-var Lightbox = function () {
+var Lightbox = function (options) {
 
-    this.fd = 300;
+    options = options || {};
+
+    this.fd = options.fd || 300;
+    this.base_url = options.base_url || '';
+    this.localContent = options.localContent || {};
+
     this.isDesktop = $(window).width() > 767;
     this.isVisible = false;
-    this.base_url = '';
     this.lastScrollpos = 0;
-    this.localContent = {};
 
     this.inline_transforms = require('./inline-transforms');
 };
 
 Lightbox.prototype = {
 
-    /***
+    /**
+     * Applies the provided transforms
+     *
+     * @param {Object} transforms
+     */
+    applyTransforms: function (transforms) {
+        $.each(transforms, function (key, value) {
+            if (this.inline_transforms.hasOwnProperty(key))
+                this.inline_transforms[key](this, value);
+        }.bind(this));
+    },
+
+    /**
      * Performs the transformations as specified in the html content
+     *
      * @param {string} html
      */
     do_inline_transforms: function (html) {
         var match;
         var patt = /<!--\s*([a-z\-]+):\s*(.*?)\s*-->/mg;
-        while ((match = patt.exec(html)) != null) {
-            var key = match[1];
-            if (this.inline_transforms.hasOwnProperty(key))
-                this.inline_transforms[key](this, match[2]);
-        }
+        var transforms = {};
+        while ((match = patt.exec(html)) != null)
+            transforms[match[1]] = match[2];
+        this.applyTransforms(transforms);
     },
 
     /**
@@ -62,6 +77,7 @@ Lightbox.prototype = {
 
     /**
      * Show given HTML content in the lightbox
+     *
      * @param {string} html
      */
     show_content: function (html) {
@@ -104,6 +120,7 @@ Lightbox.prototype = {
 
     /**
      * Load the lightbox content based on the href or lightbox content identifier
+     *
      * @param {string} target
      * @param {Object} [ajaxOptions] Optional object containing additional objects to be passed to $.ajax
      */

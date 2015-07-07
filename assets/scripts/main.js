@@ -25,11 +25,6 @@ $(function () {
         $this.remove();
     });
 
-    //$(window).scroll(function() {
-    //    fixScroll();
-    //});
-    // TODO fix scroll thing
-
     $(window).resize(function () {
         lightbox.isDesktop = $(window).width() > 767;
     });

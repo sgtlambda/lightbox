@@ -1,6 +1,6 @@
 {
   "css": [
-    "./assets/fontello/css/fontello-embedded.css"
+    "./assets/fontello/css/glyphs.css"
   ],
   "js":  [
   ]
