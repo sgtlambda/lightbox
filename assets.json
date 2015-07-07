@@ -1,5 +1,6 @@
 {
   "css": [
+    "./assets/fontello/css/fontello-embedded.css"
   ],
   "js":  [
   ]

@@ -1,21 +1,18 @@
 'use strict';
 
-var gulp = require('gulp');
-var sass = require('gulp-sass');
-var gulpif = require('gulp-if');
-var rename = require('gulp-rename');
-var concat = require('gulp-concat');
-var sourcemaps = require('gulp-sourcemaps');
-var autoprefixer = require('gulp-autoprefixer');
-
-var browserify = require('browserify');
-var babelify = require('babelify');
-var handlebars = require('browserify-handlebars');
-
-var buffer = require('vinyl-buffer');
-var source = require('vinyl-source-stream');
-
-var argv = require('yargs').argv;
+var gulp         = require('gulp'),
+    sass         = require('gulp-sass'),
+    gulpif       = require('gulp-if'),
+    rename       = require('gulp-rename'),
+    concat       = require('gulp-concat'),
+    sourcemaps   = require('gulp-sourcemaps'),
+    autoprefixer = require('gulp-autoprefixer'),
+    browserify   = require('browserify'),
+    babelify     = require('babelify'),
+    handlebars   = require('browserify-handlebars'),
+    buffer       = require('vinyl-buffer'),
+    source       = require('vinyl-source-stream'),
+    argv         = require('yargs').argv;
 
 var flags = {
     dev: !argv.dist
