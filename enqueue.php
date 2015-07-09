@@ -7,7 +7,11 @@
   Author: JM Versteeg
  */
 
-define('IS_LIGHTBOX_CONTENT', $_SERVER['HTTP_IS_LIGHTBOX_CONTENT'] === "true");
+// Set the constant IS_LIGHTBOX_CONTENT to true if the request header is set
+
+define('IS_LIGHTBOX_CONTENT',
+    isset($_SERVER['HTTP_IS_LIGHTBOX_CONTENT']) &&
+    $_SERVER['HTTP_IS_LIGHTBOX_CONTENT'] === "true");
 
 $enqueue_lightbox_assets = function () {
     wp_enqueue_script('jannielightbox', plugins_url('dist/bundle-main.js', __FILE__), ['jquery'], '0.0.0');
