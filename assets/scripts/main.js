@@ -1,6 +1,6 @@
 'use strict';
 
-var $        = require('jquery'),
+var $        = window.jQuery ? window.jQuery : require('jquery'),
     Lightbox = require('./lightbox');
 
 var lightbox = new Lightbox();
@@ -41,15 +41,26 @@ $(function () {
 
     $(document).on({
         submit: function (e) {
-            var $form = $(this);
-            var action = $form.attr('action');
-            lightbox.load_content(action, {
-                url:    action,
-                method: $form.attr('method'),
-                data:   $form.serialize()
-            });
-            $form.find('[type="submit"]').attr('disabled', 'disabled');
             e.preventDefault();
+            var $form = $(this);
+            var fieldworkForm = $form.data('fw-form');
+            var mockEvent = {
+                proceed:        true,
+                preventDefault: function () {
+                    this.proceed = false;
+                }
+            };
+            if (fieldworkForm)
+                fieldworkForm.submit(mockEvent);
+            if (!fieldworkForm || mockEvent.proceed) {
+                var action = $form.attr('action');
+                lightbox.load_content(action, {
+                    url:    action,
+                    method: $form.attr('method'),
+                    data:   $form.serialize()
+                });
+                $form.find('[type="submit"]').attr('disabled', 'disabled');
+            }
         }
     }, 'form[target="lightbox"]');
 

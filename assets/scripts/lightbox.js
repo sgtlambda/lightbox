@@ -1,8 +1,12 @@
 'use strict';
 
-var $         = require('jquery'),
+var $         = window.jQuery ? window.jQuery : require('jquery'),
     Mousetrap = require('mousetrap'),
     transit   = require('jquery.transit');
+
+// Fix compatibility with global $ and modular transit
+if (!$.fn.transition)
+    $.fn.transition = transit.fn.transition;
 
 var Lightbox = function (options) {
 
