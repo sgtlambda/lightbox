@@ -66,6 +66,11 @@ a.lightbox-content-close:hover {
         background-position: 0 -20px;
       }
     }
+    &, > form {
+      > a:first-child + h3, > input:first-child + h3, > h3:first-child {
+        margin-top: 2px;
+      }
+    }
   }
 }
 
