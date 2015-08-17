@@ -5,6 +5,9 @@ var $        = window.jQuery ? window.jQuery : require('jquery'),
 
 var lightbox = new Lightbox();
 
+if (!window.lightbox)
+    window.lightbox = lightbox;
+
 $(function () {
 
     var $body = $('body');
