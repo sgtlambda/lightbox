@@ -86,6 +86,7 @@ Lightbox.prototype = {
      */
     show_content: function (html) {
         this.$content.html(html);
+        this.$loader.hide();
         this.do_inline_transforms(html);
         if (this.isDesktop)
             this.show_content_desktop();
@@ -127,8 +128,12 @@ Lightbox.prototype = {
      *
      * @param {string} target
      * @param {Object} [ajaxOptions] Optional object containing additional objects to be passed to $.ajax
+     * @param {string} [loaderText] If set, the text will be displayed on screen while the content is being loaded
      */
-    load_content: function (target, ajaxOptions) {
+    load_content: function (target, ajaxOptions, loaderText) {
+        if (loaderText) {
+            this.$loader.text(loaderText).show();
+        } else this.$loader.hide();
         this.$over.stop().fadeIn(this.fd);
         var matches = /@(.*)/.exec(target);
         if (matches !== null && this.localContent.hasOwnProperty(matches[1]))
