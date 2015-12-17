@@ -1,6 +1,7 @@
 'use strict';
 
 var $         = window.jQuery ? window.jQuery : require('jquery'),
+    _         = require('lodash'),
     Mousetrap = require('mousetrap'),
     transit   = require('jquery.transit');
 
@@ -82,12 +83,12 @@ Lightbox.prototype = {
     /**
      * Show given HTML content in the lightbox
      *
-     * @param {string} html
+     * @param {string|jQuery} content
      */
-    show_content: function (html) {
-        this.$content.html(html);
+    show_content: function (content) {
+        this.$content.clear().append(content);
         this.$loader.hide();
-        this.do_inline_transforms(html);
+        this.do_inline_transforms(content.html ? content.html() : content);
         if (this.isDesktop)
             this.show_content_desktop();
         else

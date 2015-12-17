@@ -29,6 +29,7 @@
     "gulp-sourcemaps":       "^1.6.0",
     "jquery":                "^2.1.4",
     "jquery.transit":        "^0.9.12",
+    "lodash":                "^3.10.1",
     "mocha":                 "^2.3.4",
     "mousetrap":             "^1.5.3",
     "sinon":                 "^1.17.2",
