@@ -12,12 +12,12 @@ var Lightbox = function (options) {
 
     options = options || {};
 
-    this.fd = options.fd || 300;
-    this.base_url = options.base_url || '';
+    this.fd           = options.fd || 300;
+    this.base_url     = options.base_url || '';
     this.localContent = options.localContent || {};
 
-    this.isDesktop = $(window).width() > 767;
-    this.isVisible = false;
+    this.isDesktop     = $(window).width() > 767;
+    this.isVisible     = false;
     this.lastScrollpos = 0;
 
     this.inline_transforms = require('./inline-transforms');
@@ -44,9 +44,9 @@ Lightbox.prototype = {
      */
     do_inline_transforms: function (html) {
         var match;
-        var patt = /<!--\s*([a-z\-]+):\s*(.*?)\s*-->/mg;
+        var patt       = /<!--\s*([a-z\-]+):\s*(.*?)\s*-->/mg;
         var transforms = {};
-        while ((match = patt.exec(html)) != null)
+        while ((match = patt.exec(html)) !== null)
             transforms[match[1]] = match[2];
         this.applyTransforms(transforms);
     },
@@ -111,9 +111,9 @@ Lightbox.prototype = {
      */
     fixScroll: function () {
         if (this.isVisible && this.isDesktop) {
-            var st = $(window).scrollTop();
-            var lt = this.$content.offset().top;
-            var lb = lt + this.$content.height();
+            var st    = $(window).scrollTop();
+            var lt    = this.$content.offset().top;
+            var lb    = lt + this.$content.height();
             var minSt = Math.max(0, Math.min(lt - 50, lb + 50 - $(window).height()));
             var maxSt = Math.max(minSt + 10, lb + 50 - $(window).height(), lt - 50);
             if (st < minSt)

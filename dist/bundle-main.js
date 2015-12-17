@@ -87,7 +87,7 @@ Lightbox.prototype = {
         var match;
         var patt = /<!--\s*([a-z\-]+):\s*(.*?)\s*-->/mg;
         var transforms = {};
-        while ((match = patt.exec(html)) != null) transforms[match[1]] = match[2];
+        while ((match = patt.exec(html)) !== null) transforms[match[1]] = match[2];
         this.applyTransforms(transforms);
     },
 
@@ -279,7 +279,7 @@ $(function () {
     }, '.action-lightbox-close');
 
     $(document).on({
-        click: function () {
+        click: function (e) {
             lightbox.closePending();
             if ($(e.target).attr('href') == '#') e.preventDefault();
         }

@@ -23,7 +23,7 @@ $(function () {
     });
 
     $('[data-lightbox-path]').each(function () {
-        var $this = $(this);
+        var $this                                          = $(this);
         lightbox.localContent[$this.data('lightbox-path')] = $this.html();
         $this.remove();
     });
@@ -34,7 +34,7 @@ $(function () {
 
     $(document).on({
         click: function (e) {
-            var $link = $(this);
+            var $link  = $(this);
             var target = $link.attr('href');
             lightbox.load_content(target);
 
@@ -45,9 +45,9 @@ $(function () {
     $(document).on({
         submit: function (e) {
             e.preventDefault();
-            var $form = $(this);
+            var $form         = $(this);
             var fieldworkForm = $form.data('fw-form');
-            var mockEvent = {
+            var mockEvent     = {
                 proceed:        true,
                 preventDefault: function () {
                     this.proceed = false;
@@ -76,7 +76,7 @@ $(function () {
     }, '.action-lightbox-close');
 
     $(document).on({
-        click: function () {
+        click: function (e) {
             lightbox.closePending();
             if ($(e.target).attr('href') == '#')
                 e.preventDefault();
