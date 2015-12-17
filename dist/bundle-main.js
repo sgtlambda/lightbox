@@ -126,7 +126,7 @@ Lightbox.prototype = {
      * @param {string|jQuery} content
      */
     show_content: function (content) {
-        this.$content.clear().append(content);
+        this.$content.empty().append(content);
         this.$loader.hide();
         this.do_inline_transforms(content.html ? content.html() : content);
         if (this.isDesktop) this.show_content_desktop();else this.show_content_mobile();
