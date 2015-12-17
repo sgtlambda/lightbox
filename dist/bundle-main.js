@@ -1,7 +1,7 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
-var closeButtonTemplate = require('./../templates/closebutton.html');
+var closeButtonTemplate = require('./../templates/closebutton.handlebars');
 
 module.exports = {
 
@@ -40,7 +40,7 @@ module.exports = {
     }
 };
 
-},{"./../templates/closebutton.html":4}],2:[function(require,module,exports){
+},{"./../templates/closebutton.handlebars":4}],2:[function(require,module,exports){
 'use strict';
 
 var $ = window.jQuery ? window.jQuery : require('jquery'),
@@ -217,7 +217,7 @@ $(function () {
 
     var $body = $('body');
 
-    $body.append(require('./../templates/lightbox.html')());
+    $body.append(require('./../templates/lightbox.handlebars')());
 
     $.extend(lightbox, {
         $over: $('#lightbox-over'),
@@ -288,7 +288,7 @@ $(function () {
 
 module.exports = lightbox;
 
-},{"./../templates/lightbox.html":5,"./lightbox":2,"jquery":26}],4:[function(require,module,exports){
+},{"./../templates/lightbox.handlebars":5,"./lightbox":2,"jquery":26}],4:[function(require,module,exports){
 var templater = require("handlebars/runtime")["default"].template;module.exports = templater({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     return "<a id=\"lightbox-close\" class=\"close-lightbox action-lightbox-close\">\n    <i class=\"icon-close-lightbox\"></i>\n</a>";
 },"useData":true});

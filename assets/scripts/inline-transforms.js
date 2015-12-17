@@ -1,6 +1,6 @@
 'use strict';
 
-var closeButtonTemplate = require('./../templates/closebutton.html');
+var closeButtonTemplate = require('./../templates/closebutton.handlebars');
 
 module.exports = {
 

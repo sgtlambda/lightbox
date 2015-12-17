@@ -12,7 +12,7 @@ $(function () {
 
     var $body = $('body');
 
-    $body.append(require('./../templates/lightbox.html')());
+    $body.append(require('./../templates/lightbox.handlebars')());
 
     $.extend(lightbox, {
         $over:    $('#lightbox-over'),
