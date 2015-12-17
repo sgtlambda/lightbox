@@ -124,8 +124,9 @@ Lightbox.prototype = {
      * Show given HTML content in the lightbox
      *
      * @param {string|jQuery} content
+     * @private
      */
-    show_content: function (content) {
+    _show_content: function (content) {
         this.$content.empty().append(content);
         this.$loader.hide();
         this.do_inline_transforms(content.html ? content.html() : content);
@@ -170,14 +171,24 @@ Lightbox.prototype = {
         } else this.$loader.hide();
         this.$over.stop().fadeIn(this.fd);
         var matches = /@(.*)/.exec(target);
-        if (matches !== null && this.localContent.hasOwnProperty(matches[1])) this.show_content(this.localContent[matches[1]]);else $.ajax($.extend(true, {}, {
+        if (matches !== null && this.localContent.hasOwnProperty(matches[1])) this._show_content(this.localContent[matches[1]]);else $.ajax($.extend(true, {}, {
             url: this.base_url + target,
             headers: {
                 'is-lightbox-content': 'true'
             },
             dataType: 'html',
-            success: this.show_content.bind(this)
+            success: this._show_content.bind(this)
         }, ajaxOptions));
+    },
+
+    /**
+     * Show given HTML content or jQuery node in the lightbox
+     *
+     * @param {string|jQuery} content
+     */
+    show_content: function (content) {
+        this.$over.stop().fadeIn(this.fd);
+        this._show_content(content);
     },
 
     /**
