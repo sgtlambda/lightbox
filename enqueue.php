@@ -1,5 +1,4 @@
 <?php
-
 /*
   Plugin Name: JannieLightbox
   Description: WordPress plugin wrapper for the JannieLightbox library
@@ -9,9 +8,16 @@
 
 // Set the constant IS_LIGHTBOX_CONTENT to true if the request header is set
 
-define('IS_LIGHTBOX_CONTENT',
-    isset($_SERVER['HTTP_IS_LIGHTBOX_CONTENT']) &&
-    $_SERVER['HTTP_IS_LIGHTBOX_CONTENT'] === "true");
+define('IS_LIGHTBOX_CONTENT', call_user_func(function () {
+    if (
+        (isset($_SERVER['HTTP_IS_LIGHTBOX_CONTENT']) && $_SERVER['HTTP_IS_LIGHTBOX_CONTENT'] === "true") ||
+        isset($_GET['emulate_lightbox'])
+    )
+        return true;
+    else {
+        return false;
+    }
+}));
 
 $enqueue_lightbox_assets = function () {
     wp_enqueue_script('jannielightbox', plugins_url('dist/bundle-main.js', __FILE__), ['jquery'], '0.0.0');
@@ -33,4 +39,10 @@ add_shortcode('lightbox_content', function ($atts = [], $content = "") {
     }
     $innerHTML .= do_shortcode($content);
     return "<div data-lightbox-path='{$args['path']}'>" . $innerHTML . "</div>";
+});
+
+add_action('template_include', function ($template) {
+    if (IS_LIGHTBOX_CONTENT)
+        $template = plugin_dir_path(__FILE__) . '/templates/bare_ajax_template.php';
+    return $template;
 });
