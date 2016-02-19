@@ -167,6 +167,7 @@ Lightbox.prototype = {
     close: function () {
         this.$inner.fadeOut();
         this.$over.fadeOut(this.fd);
+        this.$loader.hide();
         $('body').removeClass("this-showing");
         this.isVisible = false;
         if (!this.isDesktop) {
