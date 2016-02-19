@@ -191,13 +191,18 @@ Lightbox.prototype = {
         this._show_content(content);
     },
 
+    forceHideOverlays() {
+        // there was some trouble with shit staying visible so we fixed it.
+        this.$over.hide();
+        this.$loader.hide();
+    },
+
     /**
      * Close the lightbox
      */
     close: function () {
         this.$inner.fadeOut();
-        this.$over.fadeOut(this.fd);
-        this.$loader.hide();
+        this.$over.fadeOut(this.fd, () => setTimeout(() => this.forceHideOverlays(), 10));
         $('body').removeClass("this-showing");
         this.isVisible = false;
         if (!this.isDesktop) {
