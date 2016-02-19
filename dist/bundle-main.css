@@ -97,6 +97,4 @@ a.lightbox-content-close:hover {
       font-weight: bold;
       cursor: pointer; }
     #lightbox-inner #lightbox-content {
-      width: auto; }
-      #lightbox-inner #lightbox-content #lightbox-close {
-        display: none; } }
+      width: auto; } }

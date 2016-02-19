@@ -24,6 +24,7 @@
     "gulp-rename": "^1.2.2",
     "gulp-sass": "^2.1.1",
     "gulp-sourcemaps": "^1.6.0",
+    "handlebars": "^4.0.5",
     "jquery": "^2.1.4",
     "jquery.transit": "^0.9.12",
     "lodash": "^3.10.1",
