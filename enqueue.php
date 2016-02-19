@@ -42,7 +42,13 @@ add_shortcode('lightbox_content', function ($atts = [], $content = "") {
 });
 
 add_action('template_include', function ($template) {
-    if (IS_LIGHTBOX_CONTENT)
+    $lightbox_content_raw = call_user_func(function () {
+        if (isset($_GET['LIGHTBOX_CONTENT_RAW']))
+            return true;
+        if (($postId = get_queried_object_id()) !== 0)
+            return !in_array(get_post_type($postId), ['post', 'page']);
+    });
+    if (IS_LIGHTBOX_CONTENT && !$lightbox_content_raw)
         $template = plugin_dir_path(__FILE__) . '/templates/bare_ajax_template.php';
     return $template;
 });
