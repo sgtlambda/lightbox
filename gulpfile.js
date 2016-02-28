@@ -26,7 +26,9 @@ var browserified = function (entry, sourceName) {
         debug:   flags.dev
     })
         .transform(handlebars)
-        .transform(babelify)
+        .transform(babelify, {
+            presets: ['es2015']
+        })
         .bundle()
         .pipe(source(sourceName))
         .pipe(buffer());

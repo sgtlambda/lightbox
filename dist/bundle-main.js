@@ -11,7 +11,7 @@ module.exports = {
      * @param lightbox
      * @param value
      */
-    'lightbox-content-width': function (lightbox, value) {
+    'lightbox-content-width': function lightboxContentWidth(lightbox, value) {
         if (lightbox.isDesktop) {
             lightbox.$inner.width(value).find('> div').innerWidth(value);
         }
@@ -23,7 +23,7 @@ module.exports = {
      * @param lightbox
      * @param value
      */
-    'lightbox-custom-classes': function (lightbox, value) {
+    'lightbox-custom-classes': function lightboxCustomClasses(lightbox, value) {
         lightbox.$inner.addClass(value);
     },
 
@@ -33,7 +33,7 @@ module.exports = {
      * @param lightbox
      * @param value
      */
-    'lightbox-close-button': function (lightbox, value) {
+    'lightbox-close-button': function lightboxCloseButton(lightbox, value) {
         if (value === 'false' || value === false) return;
         var closeButton = closeButtonTemplate();
         lightbox.$content.prepend(closeButton);
@@ -51,7 +51,7 @@ var $ = window.jQuery ? window.jQuery : require('jquery'),
 // Fix compatibility with global $ and modular transit
 if (!$.fn.transition) $.fn.transition = transit.fn.transition;
 
-var Lightbox = function (options) {
+var Lightbox = function Lightbox(options) {
 
     options = options || {};
 
@@ -73,7 +73,7 @@ Lightbox.prototype = {
      *
      * @param {Object} transforms
      */
-    applyTransforms: function (transforms) {
+    applyTransforms: function applyTransforms(transforms) {
         $.each(transforms, function (key, value) {
             if (this.inline_transforms.hasOwnProperty(key)) this.inline_transforms[key](this, value);
         }.bind(this));
@@ -84,18 +84,19 @@ Lightbox.prototype = {
      *
      * @param {string} html
      */
-    do_inline_transforms: function (html) {
+    do_inline_transforms: function do_inline_transforms(html) {
         var match;
         var patt = /<!--\s*([a-z\-]+):\s*(.*?)\s*-->/mg;
         var transforms = {};
-        while ((match = patt.exec(html)) !== null) transforms[match[1]] = match[2];
-        this.applyTransforms(transforms);
+        while ((match = patt.exec(html)) !== null) {
+            transforms[match[1]] = match[2];
+        }this.applyTransforms(transforms);
     },
 
     /**
      * Desktop-specific function to be executed when new content is to be shown
      */
-    show_content_desktop: function () {
+    show_content_desktop: function show_content_desktop() {
         var $window = $(window);
         this.$inner.stop().css({
             'margin-top': -this.$inner.outerHeight() / 2,
@@ -114,7 +115,7 @@ Lightbox.prototype = {
     /**
      * Mobile-specific function to be executed when new content is to be shown
      */
-    show_content_mobile: function () {
+    show_content_mobile: function show_content_mobile() {
         this.lastScrollpos = $(window).scrollTop();
         this.$page.hide();
         this.$inner.show();
@@ -126,7 +127,7 @@ Lightbox.prototype = {
      * @param {string|jQuery} content
      * @private
      */
-    _show_content: function (content) {
+    _show_content: function _show_content(content) {
         this.$content.empty().append(content);
         this.$loader.hide();
         this.do_inline_transforms(content.html ? content.html() : content);
@@ -147,7 +148,7 @@ Lightbox.prototype = {
     /**
      * Fix page scroll position. Experimental.
      */
-    fixScroll: function () {
+    fixScroll: function fixScroll() {
         if (this.isVisible && this.isDesktop) {
             var st = $(window).scrollTop();
             var lt = this.$content.offset().top;
@@ -165,7 +166,7 @@ Lightbox.prototype = {
      * @param {Object} [ajaxOptions] Optional object containing additional objects to be passed to $.ajax
      * @param {string} [loaderText] If set, the text will be displayed on screen while the content is being loaded
      */
-    load_content: function (target, ajaxOptions, loaderText) {
+    load_content: function load_content(target, ajaxOptions, loaderText) {
         if (loaderText) {
             this.$loader.text(loaderText).show();
         } else this.$loader.hide();
@@ -186,23 +187,30 @@ Lightbox.prototype = {
      *
      * @param {string|jQuery} content
      */
-    show_content: function (content) {
+    show_content: function show_content(content) {
         this.$over.stop().fadeIn(this.fd);
         this._show_content(content);
     },
 
-    forceHideOverlays() {
+    forceHideOverlays: function forceHideOverlays() {
         // there was some trouble with shit staying visible so we fixed it.
         this.$over.hide();
         this.$loader.hide();
     },
 
+
     /**
      * Close the lightbox
      */
-    close: function () {
+    close: function close() {
+        var _this = this;
+
         this.$inner.fadeOut();
-        this.$over.fadeOut(this.fd, () => setTimeout(() => this.forceHideOverlays(), 10));
+        this.$over.fadeOut(this.fd, function () {
+            return setTimeout(function () {
+                return _this.forceHideOverlays();
+            }, 10);
+        });
         $('body').removeClass("this-showing");
         this.isVisible = false;
         if (!this.isDesktop) {
@@ -214,7 +222,7 @@ Lightbox.prototype = {
     /**
      * Hide the lightbox, without removing the "overlay". Use this in case the page is about to navigate away
      */
-    closePending: function () {
+    closePending: function closePending() {
         this.$inner.fadeOut();
     }
 };
@@ -256,7 +264,7 @@ $(function () {
     });
 
     $(document).on({
-        click: function (e) {
+        click: function click(e) {
             var $link = $(this);
             var target = $link.attr('href');
             lightbox.load_content(target);
@@ -266,13 +274,13 @@ $(function () {
     }, 'a[target="lightbox"]');
 
     $(document).on({
-        submit: function (e) {
+        submit: function submit(e) {
             e.preventDefault();
             var $form = $(this);
             var fieldworkForm = $form.data('fw-form');
             var mockEvent = {
                 proceed: true,
-                preventDefault: function () {
+                preventDefault: function preventDefault() {
                     this.proceed = false;
                 }
             };
@@ -290,14 +298,14 @@ $(function () {
     }, 'form[target="lightbox"]');
 
     $(document).on({
-        click: function (e) {
+        click: function click(e) {
             lightbox.close();
             if ($(e.target).attr('href') == '#') e.preventDefault();
         }
     }, '.action-lightbox-close');
 
     $(document).on({
-        click: function (e) {
+        click: function click(e) {
             lightbox.closePending();
             if ($(e.target).attr('href') == '#') e.preventDefault();
         }

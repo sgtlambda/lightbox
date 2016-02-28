@@ -13,6 +13,7 @@
   "author": "jmversteeg",
   "license": "MIT",
   "devDependencies": {
+    "babel-preset-es2015": "^6.5.0",
     "babelify": "^7.2.0",
     "bourbon": "^4.2.6",
     "browserify": "^12.0.1",
