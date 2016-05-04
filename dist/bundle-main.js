@@ -53,178 +53,180 @@ if (!$.fn.transition) $.fn.transition = transit.fn.transition;
 
 var Lightbox = function Lightbox(options) {
 
-    options = options || {};
+  options = options || {};
 
-    this.fd = options.fd || 300;
-    this.base_url = options.base_url || '';
-    this.localContent = options.localContent || {};
+  this.fd = options.fd || 300;
+  this.base_url = options.base_url || '';
+  this.localContent = options.localContent || {};
 
-    this.isDesktop = $(window).width() > 767;
-    this.isVisible = false;
-    this.lastScrollpos = 0;
+  this.isDesktop = $(window).width() > 767;
+  this.isVisible = false;
+  this.lastScrollpos = 0;
 
-    this.inline_transforms = require('./inline-transforms');
+  this.inline_transforms = require('./inline-transforms');
 };
 
 Lightbox.prototype = {
 
-    /**
-     * Applies the provided transforms
-     *
-     * @param {Object} transforms
-     */
-    applyTransforms: function applyTransforms(transforms) {
-        $.each(transforms, function (key, value) {
-            if (this.inline_transforms.hasOwnProperty(key)) this.inline_transforms[key](this, value);
-        }.bind(this));
-    },
+  /**
+   * Applies the provided transforms
+   *
+   * @param {Object} transforms
+   */
+  applyTransforms: function applyTransforms(transforms) {
+    $.each(transforms, function (key, value) {
+      if (this.inline_transforms.hasOwnProperty(key)) this.inline_transforms[key](this, value);
+    }.bind(this));
+  },
 
-    /**
-     * Performs the transformations as specified in the html content
-     *
-     * @param {string} html
-     */
-    do_inline_transforms: function do_inline_transforms(html) {
-        var match;
-        var patt = /<!--\s*([a-z\-]+):\s*(.*?)\s*-->/mg;
-        var transforms = {};
-        while ((match = patt.exec(html)) !== null) {
-            transforms[match[1]] = match[2];
-        }this.applyTransforms(transforms);
-    },
+  /**
+   * Performs the transformations as specified in the html content
+   *
+   * @param {string} html
+   */
+  do_inline_transforms: function do_inline_transforms(html) {
+    var match;
+    var patt = /<!--\s*([a-z\-]+):\s*(.*?)\s*-->/mg;
+    var transforms = {};
+    while ((match = patt.exec(html)) !== null) {
+      transforms[match[1]] = match[2];
+    }this.applyTransforms(transforms);
+  },
 
-    /**
-     * Desktop-specific function to be executed when new content is to be shown
-     */
-    show_content_desktop: function show_content_desktop() {
-        var $window = $(window);
-        this.$inner.stop().css({
-            'margin-top': -this.$inner.outerHeight() / 2,
-            'margin-left': -this.$inner.outerWidth() / 2,
-            'top': $window.scrollTop() + $window.height() / 2,
-            display: 'block',
-            opacity: 0,
-            transform: 'scale(0.6) translate(0, 40px)'
-        }).transition({
-            opacity: 1,
-            scale: 1,
-            y: 0
-        }, this.fd);
-    },
+  /**
+   * Desktop-specific function to be executed when new content is to be shown
+   */
+  show_content_desktop: function show_content_desktop() {
+    var $window = $(window);
+    var marginTop = -this.$inner.outerHeight() / 2;
+    var top = Math.max($window.scrollTop() + $window.height() / 2, -marginTop + 40);
+    this.$inner.stop().css({
+      'margin-top': marginTop,
+      'margin-left': -this.$inner.outerWidth() / 2,
+      'top': top,
+      display: 'block',
+      opacity: 0,
+      transform: 'scale(0.6) translate(0, 40px)'
+    }).transition({
+      opacity: 1,
+      scale: 1,
+      y: 0
+    }, this.fd);
+  },
 
-    /**
-     * Mobile-specific function to be executed when new content is to be shown
-     */
-    show_content_mobile: function show_content_mobile() {
-        this.lastScrollpos = $(window).scrollTop();
-        this.$page.hide();
-        this.$inner.show();
-    },
+  /**
+   * Mobile-specific function to be executed when new content is to be shown
+   */
+  show_content_mobile: function show_content_mobile() {
+    this.lastScrollpos = $(window).scrollTop();
+    this.$page.hide();
+    this.$inner.show();
+  },
 
-    /**
-     * Show given HTML content in the lightbox
-     *
-     * @param {string|jQuery} content
-     * @private
-     */
-    _show_content: function _show_content(content) {
-        this.$content.empty().append(content);
-        this.$loader.hide();
-        this.do_inline_transforms(content.html ? content.html() : content);
-        if (this.isDesktop) this.show_content_desktop();else this.show_content_mobile();
+  /**
+   * Show given HTML content in the lightbox
+   *
+   * @param {string|jQuery} content
+   * @private
+   */
+  _show_content: function _show_content(content) {
+    this.$content.empty().append(content);
+    this.$loader.hide();
+    this.do_inline_transforms(content.html ? content.html() : content);
+    if (this.isDesktop) this.show_content_desktop();else this.show_content_mobile();
 
-        this.fixScroll();
-        this.isVisible = true;
-        $('body').addClass("lightbox-showing");
-        var lb = this;
+    this.fixScroll();
+    this.isVisible = true;
+    $('body').addClass("lightbox-showing");
+    var lb = this;
 
-        Mousetrap.bind(['esc'], function (e) {
-            if (e.preventDefault) e.preventDefault();
-            lb.close();
-            Mousetrap.unbind(['esc']);
-        });
-    },
+    Mousetrap.bind(['esc'], function (e) {
+      if (e.preventDefault) e.preventDefault();
+      lb.close();
+      Mousetrap.unbind(['esc']);
+    });
+  },
 
-    /**
-     * Fix page scroll position. Experimental.
-     */
-    fixScroll: function fixScroll() {
-        if (this.isVisible && this.isDesktop) {
-            var st = $(window).scrollTop();
-            var lt = this.$content.offset().top;
-            var lb = lt + this.$content.height();
-            var minSt = Math.max(0, Math.min(lt - 50, lb + 50 - $(window).height()));
-            var maxSt = Math.max(minSt + 10, lb + 50 - $(window).height(), lt - 50);
-            if (st < minSt) $(window).scrollTop(minSt);else if (st > maxSt) $(window).scrollTop(maxSt);
-        }
-    },
-
-    /**
-     * Load the lightbox content based on the href or lightbox content identifier
-     *
-     * @param {string} target
-     * @param {Object} [ajaxOptions] Optional object containing additional objects to be passed to $.ajax
-     * @param {string} [loaderText] If set, the text will be displayed on screen while the content is being loaded
-     */
-    load_content: function load_content(target, ajaxOptions, loaderText) {
-        if (loaderText) {
-            this.$loader.text(loaderText).show();
-        } else this.$loader.hide();
-        this.$over.stop().fadeIn(this.fd);
-        var matches = /@(.*)/.exec(target);
-        if (matches !== null && this.localContent.hasOwnProperty(matches[1])) this._show_content(this.localContent[matches[1]]);else $.ajax($.extend(true, {}, {
-            url: this.base_url + target,
-            headers: {
-                'is-lightbox-content': 'true'
-            },
-            dataType: 'html',
-            success: this._show_content.bind(this)
-        }, ajaxOptions));
-    },
-
-    /**
-     * Show given HTML content or jQuery node in the lightbox
-     *
-     * @param {string|jQuery} content
-     */
-    show_content: function show_content(content) {
-        this.$over.stop().fadeIn(this.fd);
-        this._show_content(content);
-    },
-
-    forceHideOverlays: function forceHideOverlays() {
-        // there was some trouble with shit staying visible so we fixed it.
-        this.$over.hide();
-        this.$loader.hide();
-    },
-
-
-    /**
-     * Close the lightbox
-     */
-    close: function close() {
-        var _this = this;
-
-        this.$inner.fadeOut();
-        this.$over.fadeOut(this.fd, function () {
-            return setTimeout(function () {
-                return _this.forceHideOverlays();
-            }, 10);
-        });
-        $('body').removeClass("this-showing");
-        this.isVisible = false;
-        if (!this.isDesktop) {
-            this.$page.show();
-            $(window).scrollTop(this.lastScrollpos);
-        }
-    },
-
-    /**
-     * Hide the lightbox, without removing the "overlay". Use this in case the page is about to navigate away
-     */
-    closePending: function closePending() {
-        this.$inner.fadeOut();
+  /**
+   * Fix page scroll position. Experimental.
+   */
+  fixScroll: function fixScroll() {
+    if (this.isVisible && this.isDesktop) {
+      var st = $(window).scrollTop();
+      var lt = this.$content.offset().top;
+      var lb = lt + this.$content.height();
+      var minSt = Math.max(0, Math.min(lt - 50, lb + 50 - $(window).height()));
+      var maxSt = Math.max(minSt + 10, lb + 50 - $(window).height(), lt - 50);
+      if (st < minSt) $(window).scrollTop(minSt);else if (st > maxSt) $(window).scrollTop(maxSt);
     }
+  },
+
+  /**
+   * Load the lightbox content based on the href or lightbox content identifier
+   *
+   * @param {string} target
+   * @param {Object} [ajaxOptions] Optional object containing additional objects to be passed to $.ajax
+   * @param {string} [loaderText] If set, the text will be displayed on screen while the content is being loaded
+   */
+  load_content: function load_content(target, ajaxOptions, loaderText) {
+    if (loaderText) {
+      this.$loader.text(loaderText).show();
+    } else this.$loader.hide();
+    this.$over.stop().fadeIn(this.fd);
+    var matches = /@(.*)/.exec(target);
+    if (matches !== null && this.localContent.hasOwnProperty(matches[1])) this._show_content(this.localContent[matches[1]]);else $.ajax($.extend(true, {}, {
+      url: this.base_url + target,
+      headers: {
+        'is-lightbox-content': 'true'
+      },
+      dataType: 'html',
+      success: this._show_content.bind(this)
+    }, ajaxOptions));
+  },
+
+  /**
+   * Show given HTML content or jQuery node in the lightbox
+   *
+   * @param {string|jQuery} content
+   */
+  show_content: function show_content(content) {
+    this.$over.stop().fadeIn(this.fd);
+    this._show_content(content);
+  },
+
+  forceHideOverlays: function forceHideOverlays() {
+    // there was some trouble with shit staying visible so we fixed it.
+    this.$over.hide();
+    this.$loader.hide();
+  },
+
+
+  /**
+   * Close the lightbox
+   */
+  close: function close() {
+    var _this = this;
+
+    this.$inner.fadeOut();
+    this.$over.fadeOut(this.fd, function () {
+      return setTimeout(function () {
+        return _this.forceHideOverlays();
+      }, 10);
+    });
+    $('body').removeClass("this-showing");
+    this.isVisible = false;
+    if (!this.isDesktop) {
+      this.$page.show();
+      $(window).scrollTop(this.lastScrollpos);
+    }
+  },
+
+  /**
+   * Hide the lightbox, without removing the "overlay". Use this in case the page is about to navigate away
+   */
+  closePending: function closePending() {
+    this.$inner.fadeOut();
+  }
 };
 
 module.exports = Lightbox;
@@ -2171,7 +2173,7 @@ module.exports = require('./dist/cjs/handlebars.runtime')['default'];
 
 },{"jquery":26}],26:[function(require,module,exports){
 /*!
- * jQuery JavaScript Library v2.2.0
+ * jQuery JavaScript Library v2.2.3
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -2181,7 +2183,7 @@ module.exports = require('./dist/cjs/handlebars.runtime')['default'];
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2016-01-08T20:02Z
+ * Date: 2016-04-05T19:26Z
  */
 
 (function( global, factory ) {
@@ -2237,7 +2239,7 @@ var support = {};
 
 
 var
-	version = "2.2.0",
+	version = "2.2.3",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -2448,6 +2450,7 @@ jQuery.extend( {
 	},
 
 	isPlainObject: function( obj ) {
+		var key;
 
 		// Not plain objects:
 		// - Any object or value whose internal [[Class]] property is not "[object Object]"
@@ -2457,14 +2460,18 @@ jQuery.extend( {
 			return false;
 		}
 
+		// Not own constructor property must be Object
 		if ( obj.constructor &&
-				!hasOwn.call( obj.constructor.prototype, "isPrototypeOf" ) ) {
+				!hasOwn.call( obj, "constructor" ) &&
+				!hasOwn.call( obj.constructor.prototype || {}, "isPrototypeOf" ) ) {
 			return false;
 		}
 
-		// If the function hasn't returned already, we're confident that
-		// |obj| is a plain object, created by {} or constructed with new Object
-		return true;
+		// Own properties are enumerated firstly, so to speed up,
+		// if last one is own, then all properties are own
+		for ( key in obj ) {}
+
+		return key === undefined || hasOwn.call( obj, key );
 	},
 
 	isEmptyObject: function( obj ) {
@@ -6651,7 +6658,7 @@ function on( elem, types, selector, data, fn, one ) {
 	if ( fn === false ) {
 		fn = returnFalse;
 	} else if ( !fn ) {
-		return this;
+		return elem;
 	}
 
 	if ( one === 1 ) {
@@ -7300,14 +7307,14 @@ var
 	rscriptTypeMasked = /^true\/(.*)/,
 	rcleanScript = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
+// Manipulating tables requires a tbody
 function manipulationTarget( elem, content ) {
-	if ( jQuery.nodeName( elem, "table" ) &&
-		jQuery.nodeName( content.nodeType !== 11 ? content : content.firstChild, "tr" ) ) {
+	return jQuery.nodeName( elem, "table" ) &&
+		jQuery.nodeName( content.nodeType !== 11 ? content : content.firstChild, "tr" ) ?
 
-		return elem.getElementsByTagName( "tbody" )[ 0 ] || elem;
-	}
-
-	return elem;
+		elem.getElementsByTagName( "tbody" )[ 0 ] ||
+			elem.appendChild( elem.ownerDocument.createElement( "tbody" ) ) :
+		elem;
 }
 
 // Replace/restore the type attribute of script elements for safe DOM manipulation
@@ -7814,7 +7821,7 @@ var getStyles = function( elem ) {
 		// FF meanwhile throws on frame elements through "defaultView.getComputedStyle"
 		var view = elem.ownerDocument.defaultView;
 
-		if ( !view.opener ) {
+		if ( !view || !view.opener ) {
 			view = window;
 		}
 
@@ -7963,15 +7970,18 @@ function curCSS( elem, name, computed ) {
 		style = elem.style;
 
 	computed = computed || getStyles( elem );
+	ret = computed ? computed.getPropertyValue( name ) || computed[ name ] : undefined;
+
+	// Support: Opera 12.1x only
+	// Fall back to style even without computed
+	// computed is undefined for elems on document fragments
+	if ( ( ret === "" || ret === undefined ) && !jQuery.contains( elem.ownerDocument, elem ) ) {
+		ret = jQuery.style( elem, name );
+	}
 
 	// Support: IE9
 	// getPropertyValue is only needed for .css('filter') (#12537)
 	if ( computed ) {
-		ret = computed.getPropertyValue( name ) || computed[ name ];
-
-		if ( ret === "" && !jQuery.contains( elem.ownerDocument, elem ) ) {
-			ret = jQuery.style( elem, name );
-		}
 
 		// A tribute to the "awesome hack by Dean Edwards"
 		// Android Browser returns percentage for some values,
@@ -9494,6 +9504,12 @@ jQuery.extend( {
 	}
 } );
 
+// Support: IE <=11 only
+// Accessing the selectedIndex property
+// forces the browser to respect setting selected
+// on the option
+// The getter ensures a default option is selected
+// when in an optgroup
 if ( !support.optSelected ) {
 	jQuery.propHooks.selected = {
 		get: function( elem ) {
@@ -9502,6 +9518,16 @@ if ( !support.optSelected ) {
 				parent.parentNode.selectedIndex;
 			}
 			return null;
+		},
+		set: function( elem ) {
+			var parent = elem.parentNode;
+			if ( parent ) {
+				parent.selectedIndex;
+
+				if ( parent.parentNode ) {
+					parent.parentNode.selectedIndex;
+				}
+			}
 		}
 	};
 }
@@ -9696,7 +9722,8 @@ jQuery.fn.extend( {
 
 
 
-var rreturn = /\r/g;
+var rreturn = /\r/g,
+	rspaces = /[\x20\t\r\n\f]+/g;
 
 jQuery.fn.extend( {
 	val: function( value ) {
@@ -9772,9 +9799,15 @@ jQuery.extend( {
 		option: {
 			get: function( elem ) {
 
-				// Support: IE<11
-				// option.value not trimmed (#14858)
-				return jQuery.trim( elem.value );
+				var val = jQuery.find.attr( elem, "value" );
+				return val != null ?
+					val :
+
+					// Support: IE10-11+
+					// option.text throws exceptions (#14686, #14858)
+					// Strip and collapse whitespace
+					// https://html.spec.whatwg.org/#strip-and-collapse-whitespace
+					jQuery.trim( jQuery.text( elem ) ).replace( rspaces, " " );
 			}
 		},
 		select: {
@@ -9827,7 +9860,7 @@ jQuery.extend( {
 				while ( i-- ) {
 					option = options[ i ];
 					if ( option.selected =
-							jQuery.inArray( jQuery.valHooks.option.get( option ), values ) > -1
+						jQuery.inArray( jQuery.valHooks.option.get( option ), values ) > -1
 					) {
 						optionSet = true;
 					}
@@ -10021,7 +10054,7 @@ jQuery.extend( jQuery.event, {
 				// But now, this "simulate" function is used only for events
 				// for which stopPropagation() is noop, so there is no need for that anymore.
 				//
-				// For the compat branch though, guard for "click" and "submit"
+				// For the 1.x branch though, guard for "click" and "submit"
 				// events is still used, but was moved to jQuery.event.stopPropagation function
 				// because `originalEvent` should point to the original event for the constancy
 				// with other events and for more focused logic
@@ -11522,18 +11555,6 @@ jQuery.ajaxPrefilter( "json jsonp", function( s, originalSettings, jqXHR ) {
 
 
 
-// Support: Safari 8+
-// In Safari 8 documents created via document.implementation.createHTMLDocument
-// collapse sibling forms: the second one becomes a child of the first one.
-// Because of that, this security measure has to be disabled in Safari 8.
-// https://bugs.webkit.org/show_bug.cgi?id=137337
-support.createHTMLDocument = ( function() {
-	var body = document.implementation.createHTMLDocument( "" ).body;
-	body.innerHTML = "<form></form><form></form>";
-	return body.childNodes.length === 2;
-} )();
-
-
 // Argument "data" should be string of html
 // context (optional): If specified, the fragment will be created in this context,
 // defaults to document
@@ -11546,12 +11567,7 @@ jQuery.parseHTML = function( data, context, keepScripts ) {
 		keepScripts = context;
 		context = false;
 	}
-
-	// Stop scripts or inline event handlers from being executed immediately
-	// by using document.implementation
-	context = context || ( support.createHTMLDocument ?
-		document.implementation.createHTMLDocument( "" ) :
-		document );
+	context = context || document;
 
 	var parsed = rsingleTag.exec( data ),
 		scripts = !keepScripts && [];
@@ -11633,7 +11649,7 @@ jQuery.fn.load = function( url, params, callback ) {
 		// If it fails, this function gets "jqXHR", "status", "error"
 		} ).always( callback && function( jqXHR, status ) {
 			self.each( function() {
-				callback.apply( self, response || [ jqXHR.responseText, status, jqXHR ] );
+				callback.apply( this, response || [ jqXHR.responseText, status, jqXHR ] );
 			} );
 		} );
 	}
@@ -11791,11 +11807,8 @@ jQuery.fn.extend( {
 			}
 
 			// Add offsetParent borders
-			// Subtract offsetParent scroll positions
-			parentOffset.top += jQuery.css( offsetParent[ 0 ], "borderTopWidth", true ) -
-				offsetParent.scrollTop();
-			parentOffset.left += jQuery.css( offsetParent[ 0 ], "borderLeftWidth", true ) -
-				offsetParent.scrollLeft();
+			parentOffset.top += jQuery.css( offsetParent[ 0 ], "borderTopWidth", true );
+			parentOffset.left += jQuery.css( offsetParent[ 0 ], "borderLeftWidth", true );
 		}
 
 		// Subtract parent offsets and element margins

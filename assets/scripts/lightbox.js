@@ -58,11 +58,11 @@ Lightbox.prototype = {
   show_content_desktop: function () {
     var $window   = $(window);
     var marginTop = -this.$inner.outerHeight() / 2;
-    var minTop    = Math.max($window.scrollTop() + $window.height() / 2, -marginTop + 20);
+    var top       = Math.max($window.scrollTop() + $window.height() / 2, -marginTop + 40);
     this.$inner.stop().css({
       'margin-top':  marginTop,
       'margin-left': -this.$inner.outerWidth() / 2,
-      'top':         $window.scrollTop() + $window.height() / 2,
+      'top':         top,
       display:       'block',
       opacity:       0,
       transform:     'scale(0.6) translate(0, 40px)'
