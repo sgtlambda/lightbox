@@ -43,10 +43,12 @@ module.exports = {
 },{"./../templates/closebutton.handlebars":4}],2:[function(require,module,exports){
 'use strict';
 
-var $ = window.jQuery ? window.jQuery : require('jquery'),
-    _ = require('lodash'),
-    Mousetrap = require('mousetrap'),
-    transit = require('jquery.transit');
+var $ = window.jQuery ? window.jQuery : require('jquery');
+
+var _ = require('lodash');
+var Mousetrap = require('mousetrap');
+var EventEmitter = require('events').EventEmitter;
+var transit = require('jquery.transit');
 
 // Fix compatibility with global $ and modular transit
 if (!$.fn.transition) $.fn.transition = transit.fn.transition;
@@ -62,6 +64,7 @@ var Lightbox = function Lightbox(options) {
   this.isDesktop = $(window).width() > 767;
   this.isVisible = false;
   this.lastScrollpos = 0;
+  this.events = new EventEmitter();
 
   this.inline_transforms = require('./inline-transforms');
 };
@@ -134,7 +137,6 @@ Lightbox.prototype = {
     this.$loader.hide();
     this.do_inline_transforms(content.html ? content.html() : content);
     if (this.isDesktop) this.show_content_desktop();else this.show_content_mobile();
-
     this.fixScroll();
     this.isVisible = true;
     $('body').addClass("lightbox-showing");
@@ -145,6 +147,8 @@ Lightbox.prototype = {
       lb.close();
       Mousetrap.unbind(['esc']);
     });
+
+    this.events.emit('content_shown');
   },
 
   /**
@@ -231,7 +235,7 @@ Lightbox.prototype = {
 
 module.exports = Lightbox;
 
-},{"./inline-transforms":1,"jquery":26,"jquery.transit":25,"lodash":27,"mousetrap":28}],3:[function(require,module,exports){
+},{"./inline-transforms":1,"events":6,"jquery":27,"jquery.transit":26,"lodash":28,"mousetrap":29}],3:[function(require,module,exports){
 'use strict';
 
 var $ = window.jQuery ? window.jQuery : require('jquery'),
@@ -316,15 +320,319 @@ $(function () {
 
 module.exports = lightbox;
 
-},{"./../templates/lightbox.handlebars":5,"./lightbox":2,"jquery":26}],4:[function(require,module,exports){
+},{"./../templates/lightbox.handlebars":5,"./lightbox":2,"jquery":27}],4:[function(require,module,exports){
 var templater = require("handlebars/runtime")["default"].template;module.exports = templater({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     return "<a id=\"lightbox-close\" class=\"close-lightbox action-lightbox-close\">\n    <i class=\"icon-close-lightbox\"></i>\n</a>";
 },"useData":true});
-},{"handlebars/runtime":24}],5:[function(require,module,exports){
+},{"handlebars/runtime":25}],5:[function(require,module,exports){
 var templater = require("handlebars/runtime")["default"].template;module.exports = templater({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     return "<div id=\"lightbox-over\"></div>\n<div id=\"lightbox-inner\">\n    <div id=\"lightbox-content\"></div>\n</div>\n<div id=\"lightbox-loader\">Loading...</div>";
 },"useData":true});
-},{"handlebars/runtime":24}],6:[function(require,module,exports){
+},{"handlebars/runtime":25}],6:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+function EventEmitter() {
+  this._events = this._events || {};
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+EventEmitter.defaultMaxListeners = 10;
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!isNumber(n) || n < 0 || isNaN(n))
+    throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+EventEmitter.prototype.emit = function(type) {
+  var er, handler, len, args, i, listeners;
+
+  if (!this._events)
+    this._events = {};
+
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events.error ||
+        (isObject(this._events.error) && !this._events.error.length)) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      } else {
+        // At least give some kind of context to the user
+        var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
+        err.context = er;
+        throw err;
+      }
+    }
+  }
+
+  handler = this._events[type];
+
+  if (isUndefined(handler))
+    return false;
+
+  if (isFunction(handler)) {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        args = Array.prototype.slice.call(arguments, 1);
+        handler.apply(this, args);
+    }
+  } else if (isObject(handler)) {
+    args = Array.prototype.slice.call(arguments, 1);
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++)
+      listeners[i].apply(this, args);
+  }
+
+  return true;
+};
+
+EventEmitter.prototype.addListener = function(type, listener) {
+  var m;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events)
+    this._events = {};
+
+  // To avoid recursion in the case that type === "newListener"! Before
+  // adding it to the listeners, first emit "newListener".
+  if (this._events.newListener)
+    this.emit('newListener', type,
+              isFunction(listener.listener) ?
+              listener.listener : listener);
+
+  if (!this._events[type])
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  else if (isObject(this._events[type]))
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  else
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+
+  // Check for listener leak
+  if (isObject(this._events[type]) && !this._events[type].warned) {
+    if (!isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+      console.error('(node) warning: possible EventEmitter memory ' +
+                    'leak detected. %d listeners added. ' +
+                    'Use emitter.setMaxListeners() to increase limit.',
+                    this._events[type].length);
+      if (typeof console.trace === 'function') {
+        // not supported in IE 10
+        console.trace();
+      }
+    }
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  var fired = false;
+
+  function g() {
+    this.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+
+  g.listener = listener;
+  this.on(type, g);
+
+  return this;
+};
+
+// emits a 'removeListener' event iff the listener was removed
+EventEmitter.prototype.removeListener = function(type, listener) {
+  var list, position, length, i;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events || !this._events[type])
+    return this;
+
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+
+  if (list === listener ||
+      (isFunction(list.listener) && list.listener === listener)) {
+    delete this._events[type];
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+
+  } else if (isObject(list)) {
+    for (i = length; i-- > 0;) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0)
+      return this;
+
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  var key, listeners;
+
+  if (!this._events)
+    return this;
+
+  // not listening for removeListener, no need to emit
+  if (!this._events.removeListener) {
+    if (arguments.length === 0)
+      this._events = {};
+    else if (this._events[type])
+      delete this._events[type];
+    return this;
+  }
+
+  // emit removeListener for all listeners on all events
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+
+  listeners = this._events[type];
+
+  if (isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else if (listeners) {
+    // LIFO order
+    while (listeners.length)
+      this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  var ret;
+  if (!this._events || !this._events[type])
+    ret = [];
+  else if (isFunction(this._events[type]))
+    ret = [this._events[type]];
+  else
+    ret = this._events[type].slice();
+  return ret;
+};
+
+EventEmitter.prototype.listenerCount = function(type) {
+  if (this._events) {
+    var evlistener = this._events[type];
+
+    if (isFunction(evlistener))
+      return 1;
+    else if (evlistener)
+      return evlistener.length;
+  }
+  return 0;
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  return emitter.listenerCount(type);
+};
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
+},{}],7:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -392,7 +700,7 @@ exports['default'] = inst;
 module.exports = exports['default'];
 
 
-},{"./handlebars/base":7,"./handlebars/exception":10,"./handlebars/no-conflict":20,"./handlebars/runtime":21,"./handlebars/safe-string":22,"./handlebars/utils":23}],7:[function(require,module,exports){
+},{"./handlebars/base":8,"./handlebars/exception":11,"./handlebars/no-conflict":21,"./handlebars/runtime":22,"./handlebars/safe-string":23,"./handlebars/utils":24}],8:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -498,7 +806,7 @@ exports.createFrame = _utils.createFrame;
 exports.logger = _logger2['default'];
 
 
-},{"./decorators":8,"./exception":10,"./helpers":11,"./logger":19,"./utils":23}],8:[function(require,module,exports){
+},{"./decorators":9,"./exception":11,"./helpers":12,"./logger":20,"./utils":24}],9:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -516,7 +824,7 @@ function registerDefaultDecorators(instance) {
 }
 
 
-},{"./decorators/inline":9}],9:[function(require,module,exports){
+},{"./decorators/inline":10}],10:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -547,7 +855,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../utils":23}],10:[function(require,module,exports){
+},{"../utils":24}],11:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -589,7 +897,7 @@ exports['default'] = Exception;
 module.exports = exports['default'];
 
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -637,7 +945,7 @@ function registerDefaultHelpers(instance) {
 }
 
 
-},{"./helpers/block-helper-missing":12,"./helpers/each":13,"./helpers/helper-missing":14,"./helpers/if":15,"./helpers/log":16,"./helpers/lookup":17,"./helpers/with":18}],12:[function(require,module,exports){
+},{"./helpers/block-helper-missing":13,"./helpers/each":14,"./helpers/helper-missing":15,"./helpers/if":16,"./helpers/log":17,"./helpers/lookup":18,"./helpers/with":19}],13:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -678,7 +986,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../utils":23}],13:[function(require,module,exports){
+},{"../utils":24}],14:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -774,7 +1082,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../exception":10,"../utils":23}],14:[function(require,module,exports){
+},{"../exception":11,"../utils":24}],15:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -801,7 +1109,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../exception":10}],15:[function(require,module,exports){
+},{"../exception":11}],16:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -832,7 +1140,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../utils":23}],16:[function(require,module,exports){
+},{"../utils":24}],17:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -860,7 +1168,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -874,7 +1182,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -909,7 +1217,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../utils":23}],19:[function(require,module,exports){
+},{"../utils":24}],20:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -958,7 +1266,7 @@ exports['default'] = logger;
 module.exports = exports['default'];
 
 
-},{"./utils":23}],20:[function(require,module,exports){
+},{"./utils":24}],21:[function(require,module,exports){
 (function (global){
 /* global window */
 'use strict';
@@ -982,7 +1290,7 @@ module.exports = exports['default'];
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1276,7 +1584,7 @@ function executeDecorators(fn, prog, container, depths, data, blockParams) {
 }
 
 
-},{"./base":7,"./exception":10,"./utils":23}],22:[function(require,module,exports){
+},{"./base":8,"./exception":11,"./utils":24}],23:[function(require,module,exports){
 // Build out our basic SafeString type
 'use strict';
 
@@ -1293,7 +1601,7 @@ exports['default'] = SafeString;
 module.exports = exports['default'];
 
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1419,12 +1727,12 @@ function appendContextPath(contextPath, id) {
 }
 
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 // Create a simple path alias to allow browserify to resolve
 // the runtime on a supported path.
 module.exports = require('./dist/cjs/handlebars.runtime')['default'];
 
-},{"./dist/cjs/handlebars.runtime":6}],25:[function(require,module,exports){
+},{"./dist/cjs/handlebars.runtime":7}],26:[function(require,module,exports){
 /*!
  * jQuery Transit - CSS3 transitions and transformations
  * (c) 2011-2014 Rico Sta. Cruz
@@ -2171,9 +2479,9 @@ module.exports = require('./dist/cjs/handlebars.runtime')['default'];
   return $;
 }));
 
-},{"jquery":26}],26:[function(require,module,exports){
+},{"jquery":27}],27:[function(require,module,exports){
 /*!
- * jQuery JavaScript Library v2.2.3
+ * jQuery JavaScript Library v2.2.4
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -2183,7 +2491,7 @@ module.exports = require('./dist/cjs/handlebars.runtime')['default'];
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2016-04-05T19:26Z
+ * Date: 2016-05-20T17:23Z
  */
 
 (function( global, factory ) {
@@ -2239,7 +2547,7 @@ var support = {};
 
 
 var
-	version = "2.2.3",
+	version = "2.2.4",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -7180,13 +7488,14 @@ jQuery.Event.prototype = {
 	isDefaultPrevented: returnFalse,
 	isPropagationStopped: returnFalse,
 	isImmediatePropagationStopped: returnFalse,
+	isSimulated: false,
 
 	preventDefault: function() {
 		var e = this.originalEvent;
 
 		this.isDefaultPrevented = returnTrue;
 
-		if ( e ) {
+		if ( e && !this.isSimulated ) {
 			e.preventDefault();
 		}
 	},
@@ -7195,7 +7504,7 @@ jQuery.Event.prototype = {
 
 		this.isPropagationStopped = returnTrue;
 
-		if ( e ) {
+		if ( e && !this.isSimulated ) {
 			e.stopPropagation();
 		}
 	},
@@ -7204,7 +7513,7 @@ jQuery.Event.prototype = {
 
 		this.isImmediatePropagationStopped = returnTrue;
 
-		if ( e ) {
+		if ( e && !this.isSimulated ) {
 			e.stopImmediatePropagation();
 		}
 
@@ -8134,19 +8443,6 @@ function getWidthOrHeight( elem, name, extra ) {
 		val = name === "width" ? elem.offsetWidth : elem.offsetHeight,
 		styles = getStyles( elem ),
 		isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
-
-	// Support: IE11 only
-	// In IE 11 fullscreen elements inside of an iframe have
-	// 100x too small dimensions (gh-1764).
-	if ( document.msFullscreenElement && window.top !== window ) {
-
-		// Support: IE11 only
-		// Running getBoundingClientRect on a disconnected node
-		// in IE throws an error.
-		if ( elem.getClientRects().length ) {
-			val = Math.round( elem.getBoundingClientRect()[ name ] * 100 );
-		}
-	}
 
 	// Some non-html elements return undefined for offsetWidth, so check for null/undefined
 	// svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
@@ -10038,6 +10334,7 @@ jQuery.extend( jQuery.event, {
 	},
 
 	// Piggyback on a donor event to simulate a different one
+	// Used only for `focus(in | out)` events
 	simulate: function( type, elem, event ) {
 		var e = jQuery.extend(
 			new jQuery.Event(),
@@ -10045,27 +10342,10 @@ jQuery.extend( jQuery.event, {
 			{
 				type: type,
 				isSimulated: true
-
-				// Previously, `originalEvent: {}` was set here, so stopPropagation call
-				// would not be triggered on donor event, since in our own
-				// jQuery.event.stopPropagation function we had a check for existence of
-				// originalEvent.stopPropagation method, so, consequently it would be a noop.
-				//
-				// But now, this "simulate" function is used only for events
-				// for which stopPropagation() is noop, so there is no need for that anymore.
-				//
-				// For the 1.x branch though, guard for "click" and "submit"
-				// events is still used, but was moved to jQuery.event.stopPropagation function
-				// because `originalEvent` should point to the original event for the constancy
-				// with other events and for more focused logic
 			}
 		);
 
 		jQuery.event.trigger( e, null, elem );
-
-		if ( e.isDefaultPrevented() ) {
-			event.preventDefault();
-		}
 	}
 
 } );
@@ -12015,7 +12295,7 @@ if ( !noGlobal ) {
 return jQuery;
 }));
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -24370,10 +24650,10 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 /*global define:false */
 /**
- * Copyright 2015 Craig Campbell
+ * Copyright 2016 Craig Campbell
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24390,10 +24670,15 @@ return jQuery;
  * Mousetrap is a simple keyboard shortcut library for Javascript with
  * no external dependencies
  *
- * @version 1.5.3
+ * @version 1.6.0
  * @url craig.is/killing/mice
  */
 (function(window, document, undefined) {
+
+    // Check if mousetrap is used inside browser, if not, return
+    if (!window) {
+        return;
+    }
 
     /**
      * mapping of special keycodes to their corresponding keys
@@ -25357,6 +25642,18 @@ return jQuery;
     };
 
     /**
+     * allow custom key mappings
+     */
+    Mousetrap.addKeycodes = function(object) {
+        for (var key in object) {
+            if (object.hasOwnProperty(key)) {
+                _MAP[key] = object[key];
+            }
+        }
+        _REVERSE_MAP = null;
+    };
+
+    /**
      * Init the global mousetrap functions
      *
      * This method is needed to allow the global mousetrap functions to work
@@ -25391,6 +25688,6 @@ return jQuery;
             return Mousetrap;
         });
     }
-}) (window, document);
+}) (typeof window !== 'undefined' ? window : null, typeof  window !== 'undefined' ? document : null);
 
 },{}]},{},[3]);

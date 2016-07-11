@@ -1,9 +1,11 @@
 'use strict';
 
-var $         = window.jQuery ? window.jQuery : require('jquery'),
-    _         = require('lodash'),
-    Mousetrap = require('mousetrap'),
-    transit   = require('jquery.transit');
+const $ = window.jQuery ? window.jQuery : require('jquery');
+
+const _            = require('lodash');
+const Mousetrap    = require('mousetrap');
+const EventEmitter = require('events').EventEmitter;
+const transit      = require('jquery.transit');
 
 // Fix compatibility with global $ and modular transit
 if (!$.fn.transition)
@@ -20,6 +22,7 @@ var Lightbox = function (options) {
   this.isDesktop     = $(window).width() > 767;
   this.isVisible     = false;
   this.lastScrollpos = 0;
+  this.events        = new EventEmitter();
 
   this.inline_transforms = require('./inline-transforms');
 };
@@ -96,7 +99,6 @@ Lightbox.prototype = {
       this.show_content_desktop();
     else
       this.show_content_mobile();
-
     this.fixScroll();
     this.isVisible = true;
     $('body').addClass("lightbox-showing");
@@ -108,6 +110,8 @@ Lightbox.prototype = {
       lb.close();
       Mousetrap.unbind(['esc']);
     });
+
+    this.events.emit('content_shown');
   },
 
   /**
